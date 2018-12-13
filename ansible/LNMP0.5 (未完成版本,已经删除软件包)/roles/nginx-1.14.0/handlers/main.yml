@@ -1,0 +1,21 @@
+---
+
+#handlers
+
+# 上传nginx的服务脚本到/etc/init.d中
+  - name: put server file
+    copy: src=nginx
+          dest=/etc/init.d
+          mode=755
+          owner=root
+          group=root
+    become: yes
+
+  - name: restart nginx
+    service: name=nginx 
+             state=restarted
+      
+#重载nginx的配置文件 
+  - name: reloaded nginx 
+    service: name=nginx 
+             state=reloaded 

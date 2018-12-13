@@ -1,0 +1,48 @@
+#安装php
+
+- name: 上传代码到/apps/src下
+  file:
+      path="/apps/src/php"  
+      state=directory
+- name: 上传源码包
+  copy:
+      src="{{item}}"
+      dest="/apps/src/php"
+  with_items:
+    - memcache-2.2.4.tgz      
+    - memcached-3.0.4.tgz     
+    - redis-4.1.0.tgz   
+    - swoole-1.10.5.tgz
+    - php-5.6.30.tar.gz
+- name: 安装php依赖库
+  yum: 
+    name=libXpm-devel
+    state=present 
+  become: yes
+- name: 运行编译脚本,安装php
+  script: 
+    install_php.sh
+  args:
+    chdir: "/apps/src/php"
+    creates: "/apps/lib/php5"
+- name: 运行编译脚本,安装php扩展
+  script: 
+    install_php_ext.sh
+  args:
+    chdir: /apps/src/php
+    creates: /apps/lib/php-5.6.30/lib/php/extensions/no-debug-non-zts-20131226/psd_mysql.so
+- name: 上传配置php的配置文件和服务脚本
+  template:
+    src="php.ini.j2"
+    dest="/apps/lib/php5/lib/php.ini"
+- template:
+    src="php-fpm.conf.j2"
+    dest="/apps/lib/php5/etc/php-fpm.conf"
+- template:
+    src="php-fpmd.j2"
+    dest="/etc/init.d/php-fpmd"
+    mode=755
+    owner=root
+    group=root
+  become: yes
+

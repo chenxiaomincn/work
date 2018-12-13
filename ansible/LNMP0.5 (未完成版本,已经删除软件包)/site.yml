@@ -1,0 +1,30 @@
+- hosts: node1
+  remote_user: apps
+  pre_tasks:
+    - name: 创建所需要的目录
+      file: path="{{item}}"
+            state=directory                
+      with_items:
+        - /apps/src 
+        - /apps/svr 
+        - /apps/lib 
+        - /apps/dat
+        - /apps/log
+        - /apps/dbdata
+    - name: 安装编译工具
+      shell: yum groupinstall -y  "Development tools"
+             creates=/usr/bin/gcc
+      become: yes
+   # php和mysql的没有写入启动的规则   
+  roles:
+    - nginx-1.14.0
+    - php_lib
+    - mysql-5.6
+    - php-5.6.30
+# TODO: 后续再补充情况临时文件
+#  post_tasks:
+#    - name: 安装后清除临时文件
+#      shell: 
+        
+
+

@@ -1,0 +1,49 @@
+#mysql5.6.30 安装任务
+- name: 安装cmake软件
+  yum:
+    name=cmake
+    state=present
+  become: yes
+- name: 上传代码到/apps/src下的mysql
+  file:
+      path="/apps/src/mysql"  
+      state=directory
+- name: 上传源码包
+  copy:
+      src="{{item}}"
+      dest="/apps/src/mysql"
+  with_items:
+    - bison-2.5.tar.gz
+    - mysql-5.6.41.tar.gz
+    - ncurses-4.2.tar.gz
+
+- name: 运行编译脚本,安装mysql-5.6
+  script: 
+    install_mysql.sh
+  args:
+    chdir: "/apps/src/mysql"
+    creates: "/apps/svr/mysql-5.6.41"
+- name: 创建mysql的配置文件夹
+  file:
+    path="/apps/svr/mysql/etc"
+    state=directory
+- name: 上传配置文件
+  template:
+    src=my.cnf.j2
+    dest=/apps/svr/mysql/etc/my.cnf
+- name: 上传服务脚本
+  template:
+    src=mysql.server.j2
+    dest="/etc/init.d/mysql"
+  become: yes
+- name: 初始化数据库文件夹
+  file: 
+    name="/apps/dbdata/mydata"
+    state=directory
+- name: 初始化数据
+  shell:
+    scripts/mysql_install_db --user=mysql --datadir=/apps/dbdata/mysqldb --defaults-file=/apps/svr/mysql/etc/my.cnf
+  args:
+    chdir: "/apps/svr/mysql"
+    creates: "/apps/dbdata/mysqldb/test"
+  

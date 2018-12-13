@@ -1,0 +1,39 @@
+---
+# tasks 
+
+  - name: 上传源代码到/apps/src下
+    file: path="/apps/src/nginx"  state=directory
+  - copy: src="{{item}}" 
+          dest="/apps/src/nginx"
+    with_items:
+        - nginx-1.14.0.tar.gz
+        - openssl-1.0.2j.tar.gz
+        - pcre-8.35.tar.gz
+        - zlib-1.2.8.tar.gz
+  - name: 运行编译脚本,编译安装nginx,并启动nginx服务
+    script: chdir="/apps/src/nginx" 
+            creates="/apps/svr/nginx-1.14.0" 
+            install_nginx.sh
+  - name: 上传配置文件,如有修改则查nignx配置文件,没有问题则重载配置文件
+    template: src=nginx.conf.j2
+              dest=/apps/svr/nginx-1.14.0/nginx.conf
+              backup=yes
+              validate="/apps/svr/nginx-1.14.0/sbin/nginx -t -c %s"
+    tags: test
+    notify:
+      - put server file
+      - reloaded nginx  
+  - name: 测试页配置
+    file: path="/apps/svr/nginx-1.14.0/conf.d" 
+          state=directory
+  - template: src=test.conf.j2
+              dest="/apps/svr/nginx-1.14.0/conf.d/test.conf"
+#              validate="/apps/svr/nginx-1.14.0/sbin/nginx -t"
+    notify:
+      - reloaded nginx
+  - name: 上传测试页
+    file: path="/apps/dat/test"  
+          state=directory
+  - template: src="index.html.j2"
+              dest="/apps/dat/test/index.html"
+              

@@ -1,0 +1,28 @@
+#安装php_lib
+
+- name: 上传代码到/apps/src下的php_lib
+  file:
+      path="/apps/src/php_lib"  
+      state=directory
+- name: 上传源码包
+  copy:
+      src="{{item}}"
+      dest="/apps/src/php_lib"
+  with_items:
+    - curl-7.36.0.tar.gz
+    - igbinary-2.0.7.tgz
+    - zlib-1.2.8.tar.gz
+    - jpeg-9a.tar.gz
+    - libmcrypt-2.5.8.tar.gz
+    - libpng-1.6.10.tar.gz
+    - freetype-2.4.6.tar.gz
+    - curl-7.36.0.tar.gz
+    - libxml2-2.7.8.tar.gz
+    - libiconv-1.14.tar.gz
+    - openssl-1.0.2p.tar.gz
+- name: 运行编译脚本,安装php相关的库
+  script: 
+    install_php_lib.sh
+  args:
+    chdir: "/apps/src/php_lib"
+    creates: "/apps/lib/openssl"
